@@ -5,6 +5,9 @@ import zipfile
 
 import numpy as np
 
+
+# Based on code by Milan Straka for npfl144 course on MFF UK
+
 # Loads a morphological dataset in a vertical format.
 # - The data consists of three Datasets
 #   - train
@@ -22,6 +25,7 @@ import numpy as np
 #   - charseqs_map: String -> character_sequence_id map.
 #   - charseqs: Character_sequence_id -> [characters], where character is an index
 #       to the dataset alphabet.
+
 class MorphoDataset:
     _URL = "https://ufal.mff.cuni.cz/~straka/courses/npfl114/1819/datasets/"
 

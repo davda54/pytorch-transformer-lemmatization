@@ -39,7 +39,7 @@ class PositionLinear(torch.nn.Module):
         self.b: (out_dim,) = nn.Parameter(torch.zeros(out_dim))
 
     def forward(self, x) -> torch.Tensor:
-        size_out = (self.out_dim,) + x.size()[:-1]
+        size_out = x.size()[:-1] + (self.out_dim,)
         x = torch.addmm(self.b, x.view(-1, x.size(-1)), self.w)
         return x.view(*size_out)
 
