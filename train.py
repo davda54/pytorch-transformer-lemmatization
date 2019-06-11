@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from itertools import count
+from typing import List
 
 from morpho_dataset import MorphoDataset
 from model import Model
@@ -10,7 +11,8 @@ from lr_decay import LRDecay
 from logger import *
 
 
-def smooth_loss(pred, gold, smoothing: float):
+# cross-entropy with label smoothing
+def smooth_loss(pred: torch.Tensor, gold: torch.Tensor, smoothing: float) -> torch.Tensor:
     n_class = pred.size(1)
 
     one_hot = torch.full_like(pred, fill_value=smoothing / (n_class - 1))
@@ -19,8 +21,8 @@ def smooth_loss(pred, gold, smoothing: float):
 
     return F.kl_div(input=log_prob, target=one_hot)
 
-
-def get_example(indices, alphabet):
+# get word from indices to an alphabet list
+def get_example(indices: np.ndarray, alphabet: List[str]) -> str:
     example = []
     for i in indices:
         if i == MorphoDataset.Factor.BOW: continue
@@ -28,7 +30,7 @@ def get_example(indices, alphabet):
         example.append(alphabet[i])
     return ''.join(example)
 
-def get_mistakes(truth_mask, dataset, inputs, predictions, targets):
+def get_mistakes(truth_mask: torch.ByteTensor, dataset: MorphoDataset, inputs: torch.LongTensor, predictions: torch.LongTensor, targets: torch.LongTensor) -> List[List[str]]:
     inputs, predictions, targets = inputs.numpy(), predictions.numpy(), targets.numpy()
     mistakes = []
 
