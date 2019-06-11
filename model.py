@@ -54,11 +54,11 @@ class AttentionSublayer(nn.Module):
         self.scale = math.sqrt(dimension / heads)
 
         self.pos_embedding = nn.Parameter(torch.randn(2*max_pos_len + 1, dimension // heads, device='cuda', requires_grad=True))
-        self.input_transform_q = PositionLinear(dimension, dimension)
-        self.input_transform_k = PositionLinear(dimension, dimension)
-        self.input_transform_v = PositionLinear(dimension, dimension)
+        self.input_transform_q = nn.Linear(dimension, dimension, bias=False)
+        self.input_transform_k = nn.Linear(dimension, dimension, bias=False)
+        self.input_transform_v = nn.Linear(dimension, dimension, bias=False)
         self.attention_dropout = nn.Dropout(attention_dropout)
-        self.output_transform = PositionLinear(dimension, dimension)
+        self.output_transform = nn.Linear(dimension, dimension, bias=False)
 
     def _split_heads(self, x: (B,T,D)) -> (B,H,T,D//H):
         x: (B,T,H,D//H) = x.view(x.size(0), -1, self.heads, self.dimension // self.heads)
