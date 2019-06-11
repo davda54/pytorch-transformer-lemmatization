@@ -53,7 +53,7 @@ class AttentionSublayer(nn.Module):
         self.max_pos_len = max_pos_len
         self.scale = math.sqrt(dimension / heads)
 
-        self.pos_embedding = torch.randn(2*max_pos_len + 1, dimension // heads, device='cuda', requires_grad=True)
+        self.pos_embedding = nn.Parameter(torch.randn(2*max_pos_len + 1, dimension // heads, device='cuda', requires_grad=True))
         self.input_transform_q = PositionLinear(dimension, dimension)
         self.input_transform_k = PositionLinear(dimension, dimension)
         self.input_transform_v = PositionLinear(dimension, dimension)
