@@ -78,8 +78,8 @@ if __name__ == "__main__":
     parser.add_argument("--warmup_steps", default=16000, type=int, help="Learning rate warmup.")
     args = parser.parse_args()
 
-    architecture = ",".join(("{}={}".format(re.sub("(.)[^_]*_?", r"\1", key), value) for key, value in sorted(vars(args).items()) if key not in ["directory", "base_directory", "epochs", "batch_size", "clip_gradient", "checkpoint", "evaluate_each", "max_batch_size"]))
-    args.directory = f"{args.base_directory}/models/attention_{architecture}"
+    architecture = ",".join(("{}={}".format(re.sub("(.)[^_]*_?", r"\1", key), value) for key, value in sorted(vars(args).items()) if key not in ["directory", "base_directory", "epochs", "batch_size", "clip_gradient", "checkpoint", "evaluate_each", "max_batch_size", "skip_logging"]))
+    args.directory = f"{args.base_directory}/models/{architecture}"
     if not os.path.exists(args.directory):
         os.makedirs(args.directory)
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     else:
         initial_epoch, initial_step = 0, 0
 
-    lr_decay = LRDecay([sparse_optimizer, dense_optimizer], args.dim, args.learning_rate, args.warmup, initial_step)
+    lr_decay = LRDecay([sparse_optimizer, dense_optimizer], args.dim, args.learning_rate, args.warmup_steps, initial_step)
     np.random.seed(987)
     
     for epoch in count(initial_epoch):
