@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from itertools import count
+import time
 from typing import List
 
 from morpho_dataset import MorphoDataset
@@ -128,6 +129,7 @@ if __name__ == "__main__":
 
             batches_done = 0
             running_loss, total_images, correct, correct_tags, total_words = 0.0, 0, 0.0, 0.0, 0
+            start_time = time.time()
 
             for b, (batch, batch_size) in enumerate(data.batches(args.max_batch_size)):
                 learning_rate = lr_decay()
@@ -163,7 +165,7 @@ if __name__ == "__main__":
                     if b % args.skip_logging == 0:
                         log_train_progress(epoch, running_loss / total_images, correct / total_images * 100, correct_tags / total_words * 100, learning_rate, int(batches_done / data.size() * 100))
                     
-            log_train(epoch, running_loss / total_images, correct / total_images * 100, correct_tags / total_words * 100, log_file)
+            log_train(epoch, running_loss / total_images, correct / total_images * 100, correct_tags / total_words * 100, int(time.time() - start_time), log_file)
 
 
             #

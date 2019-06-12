@@ -7,10 +7,10 @@ def log_train_progress(epoch: int, loss: float, accuracy: float, accuracy_tags: 
     loading_bar = d*'█' + (('░' if r < 2 else '▒' if r < 4 else '▓') + max(0, 19 - d)*'░' if progress < 100 else '')
     print(f'\repoch: {epoch:3d} ║ train loss: {loss:1.6f} │ acc lemma: {accuracy:2.3f} % │ tag: {accuracy_tags:2.3f} % │ lr: {learning_rate:1.6f} ║ {loading_bar} {progress:2d} %', end='', flush=True)
 
-def log_train(epoch: int, loss: float, accuracy: float, accuracy_tags: float, out_file: TextIO) -> None:
+def log_train(epoch: int, loss: float, accuracy: float, accuracy_tags: float, time_seconds: int, out_file: TextIO) -> None:
     print('\r' + 140 * ' ', end='')  # clear line
-    print(f'\repoch: {epoch:3d} ║ train loss: {loss:1.6f} │ acc lemma: {accuracy:2.3f} % │ tag: {accuracy_tags:2.3f} % ║ ', end='', flush=True)
-    print(f'epoch: {epoch:3d} ║ train loss: {loss:1.6f} │ acc lemma: {accuracy:2.3f} % │ tag: {accuracy_tags:2.3f} % ║ ', end='', flush=True, file=out_file)
+    print(f'\repoch: {epoch:3d} ║ train loss: {loss:1.6f} │ acc lemma: {accuracy:2.3f} % │ tag: {accuracy_tags:2.3f} % ║ elapsed: {time_seconds//60:d}:{time_seconds%60:d} ║', end='', flush=True)
+    print(f'epoch: {epoch:3d} ║ train loss: {loss:1.6f} │ acc lemma: {accuracy:2.3f} % │ tag: {accuracy_tags:2.3f} % ║ elapsed: {time_seconds//60:d}:{time_seconds%60:d} ║', end='', flush=True, file=out_file)
 
 def log_skipped_dev(out_file: TextIO) -> None:
     print(flush=True)
