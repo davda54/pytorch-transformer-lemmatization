@@ -115,8 +115,7 @@ if __name__ == "__main__":
         initial_epoch, initial_step = 0, 0
 
     lr_decay = LRDecay([sparse_optimizer, dense_optimizer], args.dim, args.learning_rate, args.warmup_steps, initial_step)
-    np.random.seed(987)
-    
+
     for epoch in count(initial_epoch):
         with open(f"{args.directory}/log.txt", "a", encoding="utf-8") as log_file:
 

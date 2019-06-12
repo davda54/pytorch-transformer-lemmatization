@@ -10,19 +10,31 @@ T_K, T_Q = dim_vars('SeqLengthKey SeqLengthQuery')
 S, W, C = dim_vars('Sentences Words Chars')
 
 
-def arrange_char_pos_embedding(len_k: int, len_q: int, max_len: int, embedding: (E,D//H)) -> (T_Q,T_K,D//H):
-    k: (T_K) = torch.arange(len_k, device='cuda')
-    q: (T_Q) = torch.arange(len_q, device='cuda')
-    indices: (T_Q,T_K) = k.view(1, -1) - q.view(-1, 1)
-    indices.clamp_(-max_len, max_len).add_(max_len)
+last_char_indices = {'len_k': 0, 'len_q': 0, 'indices': None}
+def arrange_char_pos_embedding(len_k: int, len_q: int, max_len: int, embedding: (E,D//H), cache: bool = True) -> (T_Q,T_K,D//H):
+    if cache and last_char_indices['len_k'] == len_k and last_char_indices['len_q'] == len_q:
+        indices: (T_Q,T_K) = last_char_indices['indices']
+    else:
+        k: (T_K) = torch.arange(len_k, device='cuda')
+        q: (T_Q) = torch.arange(len_q, device='cuda')
+        indices: (T_Q,T_K) = k.view(1, -1) - q.view(-1, 1)
+        indices.clamp_(-max_len, max_len).add_(max_len)
+
+        last_char_indices['len_k'] = len_k, last_char_indices['len_q'] = len_q, last_char_indices['indices'] = indices
 
     return embedding[indices, :]
 
-def arrange_word_pos_embedding(len_k: int, lens_q: int, max_len: int, embedding: (E,D//H)) -> (B,T_K,D//H):
-    k: (T_K) = torch.arange(len_k, device='cuda')
-    q: (B) = torch.repeat_interleave(lens_q - lens_q.cumsum(dim=0), lens_q, dim=0) + torch.arange(lens_q.sum(), device='cuda')
-    indices: (B,T_K) = k.view(1, -1) - q.view(-1, 1)
-    indices.clamp_(-max_len, max_len).add_(max_len)
+last_word_indices = {'len_k': 0, 'lens_q': torch.LongTensor([0]), 'indices': None}
+def arrange_word_pos_embedding(len_k: int, lens_q: torch.Tensor, max_len: int, embedding: (E,D//H), cache: bool = True) -> (B,T_K,D//H):
+    if cache and last_word_indices['len_k'] == len_k and last_word_indices['lens_q'].equal(lens_q):
+        indices: (T_Q,T_K) = last_word_indices['indices']
+    else:
+        k: (T_K) = torch.arange(len_k, device='cuda')
+        q: (B) = torch.repeat_interleave(lens_q - lens_q.cumsum(dim=0), lens_q, dim=0) + torch.arange(lens_q.sum(), device='cuda')
+        indices: (B,T_K) = k.view(1, -1) - q.view(-1, 1)
+        indices.clamp_(-max_len, max_len).add_(max_len)
+
+        last_word_indices['len_k'] = len_k, last_word_indices['lens_q'] = lens_q, last_word_indices['indices'] = indices
 
     return embedding[indices, :]
 
