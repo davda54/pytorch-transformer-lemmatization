@@ -11,6 +11,8 @@ from model import Model
 from lr_decay import LRDecay
 from logger import *
 
+VERSION = 'v3.0'
+
 
 # cross-entropy with label smoothing
 def smooth_loss(pred: torch.Tensor, gold: torch.Tensor, smoothing: float) -> torch.Tensor:
@@ -82,7 +84,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     architecture = ",".join(("{}={}".format(re.sub("(.)[^_]*_?", r"\1", key), value) for key, value in sorted(vars(args).items()) if key not in ["directory", "base_directory", "epochs", "batch_size", "clip_gradient", "checkpoint", "evaluate_each", "max_batch_size", "skip_logging"]))
-    args.directory = f"{args.base_directory}/models/{architecture}"
+    args.directory = f"{args.base_directory}/models/{VERSION}_{architecture}"
     if not os.path.exists(args.directory):
         os.makedirs(args.directory)
 

@@ -20,7 +20,7 @@ def arrange_char_pos_embedding(len_k: int, len_q: int, max_len: int, embedding: 
         indices: (T_Q,T_K) = k.view(1, -1) - q.view(-1, 1)
         indices.clamp_(-max_len, max_len).add_(max_len)
 
-        last_char_indices['len_k'] = len_k, last_char_indices['len_q'] = len_q, last_char_indices['indices'] = indices
+        last_char_indices['len_k'] = len_k; last_char_indices['len_q'] = len_q; last_char_indices['indices'] = indices
 
     return embedding[indices, :]
 
@@ -34,7 +34,7 @@ def arrange_word_pos_embedding(len_k: int, lens_q: torch.Tensor, max_len: int, e
         indices: (B,T_K) = k.view(1, -1) - q.view(-1, 1)
         indices.clamp_(-max_len, max_len).add_(max_len)
 
-        last_word_indices['len_k'] = len_k, last_word_indices['lens_q'] = lens_q, last_word_indices['indices'] = indices
+        last_word_indices['len_k'] = len_k; last_word_indices['lens_q'] = lens_q; last_word_indices['indices'] = indices
 
     return embedding[indices, :]
 
