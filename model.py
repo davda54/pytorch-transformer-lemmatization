@@ -122,6 +122,17 @@ class DenseSublayer(nn.Module):
         return self.dropout(self.linear_2(x))
 
 
+class GateSublayer(nn.Module):
+    def __init__(self, dimension):
+        super(GateSublayer, self).__init__()
+
+        self.transform = nn.Linear(2*dimension, dimension)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x: (B,T,2*D)) -> (B,T,D):
+        return self.sigmoid(self.transform(x))
+
+
 class EncoderLayer(nn.Module):
     def __init__(self, dimension, heads, dropout, max_pos_len, attention_dropout):
         super(EncoderLayer, self).__init__()
@@ -150,14 +161,17 @@ class DecoderLayer(nn.Module):
 
         self.attention_1 = AttentionSublayer(dimension, heads, max_pos_len, attention_dropout)
         self.dropout_1 = nn.Dropout(dropout)
+        self.gate_1 = GateSublayer(dimension)
         self.layer_norm_1 = nn.LayerNorm(dimension)
 
         self.attention_2 = AttentionSublayer(dimension, heads, max_pos_len, attention_dropout)
         self.dropout_2 = nn.Dropout(dropout)
+        self.gate_2 = GateSublayer(dimension)
         self.layer_norm_2 = nn.LayerNorm(dimension)
 
         self.attention_3 = AttentionSublayer(dimension, heads, max_pos_len, attention_dropout)
         self.dropout_3 = nn.Dropout(dropout)
+        self.gate_3 = GateSublayer(dimension)
         self.layer_norm_3 = nn.LayerNorm(dimension)
 
         self.dense_sublayer = DenseSublayer(dimension, dropout)
@@ -165,13 +179,16 @@ class DecoderLayer(nn.Module):
 
     def forward(self, char_encoder_output, word_encoder_output, x, look_ahead_mask, char_padding_mask, word_padding_mask, sentence_lengths):
         attention = self.attention_1(x, x, x, look_ahead_mask)
-        x = self.layer_norm_1(x + self.dropout_1(attention))
+        gate = self.gate_1(torch.cat((x, attention), -1))
+        x = self.layer_norm_1(gate * x + (1 - gate) * self.dropout_1(attention))
 
         attention = self.attention_2(x, char_encoder_output, char_encoder_output, char_padding_mask)
-        x = self.layer_norm_2(x + self.dropout_2(attention))
+        gate = self.gate_2(torch.cat((x, attention), -1))
+        x = self.layer_norm_2(gate * x + (1 - gate) * self.dropout_2(attention))
 
         attention = self.attention_3(x, word_encoder_output, word_encoder_output, word_padding_mask, sentence_lengths)
-        x = self.layer_norm_3(x + self.dropout_3(attention))
+        gate = self.gate_1(torch.cat((x, attention), -1))
+        x = self.layer_norm_3(gate * x + (1 - gate) * self.dropout_3(attention))
 
         return self.layer_norm_4(x + self.dense_sublayer(x))
 
@@ -208,12 +225,6 @@ class Decoder(nn.Module):
         self.decoding = nn.ModuleList([DecoderLayer(dimension, heads, dropout, max_pos_len, duz) for _ in range(layers)])
 
         self.classifier = nn.Linear(dimension, num_chars)
-        #self.classifier.weight = self.embedding.weight # tie weights
-        #self.init_weights()
-
-    def init_weights(self):
-        nn.init.xavier_normal_(self.classifier.weight)
-        nn.init.zeros_(self.classifier.bias)
 
     def forward(self, char_encoder_output, word_encoder_output, x, look_ahead_mask, char_padding_mask, word_padding_mask, sentence_lengths):
         x = self.embedding(x) * self.scale
